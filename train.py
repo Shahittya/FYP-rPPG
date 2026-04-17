@@ -4,46 +4,42 @@ from models.deepphys.dataset_loader import RPPGDataset
 from models.deepphys.model import DeepPhysModel
 import torch.nn as nn
 
-# Load dataset
-dataset = RPPGDataset("data/videos")
+# 🔥 DEVICE
+device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
-# DataLoader
+# Dataset
+DATA_PATH = "data/videos"  # change in Colab
+dataset = RPPGDataset(DATA_PATH)
+
 loader = DataLoader(dataset, batch_size=1, shuffle=True)
 
 # Model
-model = DeepPhysModel()
+model = DeepPhysModel().to(device)
 
-# Optimizer + Loss
 optimizer = torch.optim.Adam(model.parameters(), lr=1e-3)
 criterion = nn.MSELoss()
 
-# Training loop
+# 🔥 TRAIN LOOP (SAFE VERSION)
 for epoch in range(2):
     for motion, signal in loader:
 
-        motion = motion.squeeze(0)   # (W, T, H, W, C)
-        signal = signal.squeeze(0)
+        motion = motion.squeeze(0).float().to(device)   # (W, T, H, W, C)
+        signal = signal.squeeze(0).float().to(device)   # (W, T)
 
-        motion = motion.float()
-        signal = signal.float()
-
-        max_windows = min(3, len(motion))   # 🔥 VERY SAFE LIMIT
+        # 🔥 LIMIT WINDOWS (VERY IMPORTANT)
+        max_windows = min(3, len(motion))
 
         for i in range(max_windows):
 
             m = motion[i]   # (T, H, W, C)
             s = signal[i]   # (T,)
 
-            try:
-                output = model(m, m)
-                loss = criterion(output, s)
+            output = model(m, m)   # TEMP (will improve later)
 
-                optimizer.zero_grad()
-                loss.backward()
-                optimizer.step()
+            loss = criterion(output, s)
 
-            except Exception as e:
-                print("Error in window:", e)
-                continue
+            optimizer.zero_grad()
+            loss.backward()
+            optimizer.step()
 
     print(f"Epoch {epoch}, Loss: {loss.item()}")
