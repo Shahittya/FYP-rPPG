@@ -7,39 +7,58 @@ import torch.nn as nn
 # 🔥 DEVICE
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
+# 🔥 DATA PATH (COLAB)
+DATA_PATH = "/content/drive/MyDrive/data"
+
 # Dataset
-DATA_PATH = "/content/drive/MyDrive/data"  # change in Colab
 dataset = RPPGDataset(DATA_PATH)
 
+# 🔥 IMPORTANT: keep batch_size = 1 for now
 loader = DataLoader(dataset, batch_size=1, shuffle=True)
 
 # Model
 model = DeepPhysModel().to(device)
+model.train()
 
+# Optimizer + Loss
 optimizer = torch.optim.Adam(model.parameters(), lr=1e-3)
 criterion = nn.MSELoss()
 
 # 🔥 TRAIN LOOP (SAFE VERSION)
 for epoch in range(2):
-    for motion, signal in loader:
+    print(f"\n===== Epoch {epoch} =====")
 
-        motion = motion.squeeze(0).float().to(device)   # (W, T, H, W, C)
-        signal = signal.squeeze(0).float().to(device)   # (W, T)
+    for batch_idx, (motion, signal) in enumerate(loader):
+
+        print(f"\nProcessing video batch {batch_idx+1}")
+
+        # remove batch dimension
+        motion = motion.squeeze(0)   # (W, T, H, W, C)
+        signal = signal.squeeze(0)   # (W, T)
 
         # 🔥 LIMIT WINDOWS (VERY IMPORTANT)
-        max_windows = min(3, len(motion))
+        max_windows = min(2, len(motion))
 
         for i in range(max_windows):
 
-            m = motion[i]   # (T, H, W, C)
-            s = signal[i]   # (T,)
+            print(f"  Window {i+1}/{max_windows}")
 
-            output = model(m, m)   # TEMP (will improve later)
+            # move small chunk to GPU
+            m = motion[i].float().to(device)
+            s = signal[i].float().to(device)
 
-            loss = criterion(output, s)
+            try:
+                # TEMP: motion used as appearance too
+                output = model(m, m)
 
-            optimizer.zero_grad()
-            loss.backward()
-            optimizer.step()
+                loss = criterion(output, s)
 
-    print(f"Epoch {epoch}, Loss: {loss.item()}")
+                optimizer.zero_grad()
+                loss.backward()
+                optimizer.step()
+
+            except Exception as e:
+                print("Error in window:", e)
+                continue
+
+    print(f"\nEpoch {epoch} completed | Loss: {loss.item()}")
