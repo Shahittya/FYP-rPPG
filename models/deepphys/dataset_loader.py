@@ -35,9 +35,11 @@ class RPPGDataset:
         cap = cv2.VideoCapture(video_path)
         frames = []
 
+        MAX_FRAMES = 120   # VERY IMPORTANT
+
         while True:
             ret, frame = cap.read()
-            if not ret:
+            if not ret or len(frames) >= MAX_FRAMES:
                 break
 
             frame = cv2.resize(frame, (72, 72))
@@ -86,7 +88,9 @@ class RPPGDataset:
         motions = []
         signals = []
 
-        for i in range(len(motion) - window_size):
+        MAX_WINDOWS = 50  #  LIMIT
+
+        for i in range(min(len(motion) - window_size, MAX_WINDOWS)):
             m = motion[i:i+window_size]
             s = signal[i:i+window_size]
 
