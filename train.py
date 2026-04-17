@@ -8,7 +8,7 @@ import torch.nn as nn
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 # Dataset
-DATA_PATH = "data/videos"  # change in Colab
+DATA_PATH = "/content/drive/MyDrive/data"  # change in Colab
 dataset = RPPGDataset(DATA_PATH)
 
 loader = DataLoader(dataset, batch_size=1, shuffle=True)
