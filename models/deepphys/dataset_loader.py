@@ -21,9 +21,9 @@ class RPPGDataset:
             json_file = None
 
             for file in os.listdir(subject_path):
-                if file.endswith("_1.mp4"):
+                if file.endswith('_1.mp4'):
                     video_file = os.path.join(subject_path, file)
-                elif file.endswith(".json"):
+                elif file.endswith('.json'):
                     json_file = os.path.join(subject_path, file)
 
             if video_file and json_file:
@@ -31,11 +31,12 @@ class RPPGDataset:
 
         return samples
 
+    # Extract frames
     def extract_frames(self, video_path):
         cap = cv2.VideoCapture(video_path)
         frames = []
 
-        MAX_FRAMES = 120   # VERY IMPORTANT
+        MAX_FRAMES = 120
 
         while True:
             ret, frame = cap.read()
@@ -43,17 +44,18 @@ class RPPGDataset:
                 break
 
             frame = cv2.resize(frame, (72, 72))
-            frame = frame / 255.0
+            frame = frame.astype(np.float32) / 255.0
             frames.append(frame)
 
         cap.release()
         return np.array(frames)
 
+    # Motion
     def extract_motion(self, frames):
         return frames[1:] - frames[:-1]
 
-    # Extract HR signal from your JSON structure
-    def extract_gt_signal(self, json_path, video_path):
+    # Ground truth signal
+    def extract_gt_signal(self, json_path):
         with open(json_path, 'r') as f:
             data = json.load(f)
 
@@ -65,18 +67,14 @@ class RPPGDataset:
 
                 if "hr" in recordings:
                     hr_data = recordings["hr"]["timeseries"]
-
-                    # extract only signal values
-                    signal = [x[1] for x in hr_data]
-                    return np.array(signal)
+                    return np.array([x[1] for x in hr_data])
 
         except Exception as e:
-            print(f" Error reading JSON: {e}")
+            print(f"Error reading JSON: {e}")
 
-        print(f"Could not extract signal from {json_path}")
         return None
 
-    # NEW: align signal to match motion length
+    # Align signal
     def align_signal(self, signal, target_length):
         original_len = len(signal)
 
@@ -84,20 +82,31 @@ class RPPGDataset:
         x_new = np.linspace(0, 1, target_length)
 
         return np.interp(x_new, x_old, signal)
-    def create_windows(self, motion, signal, window_size=64):
-        motions = []
-        signals = []
 
-        MAX_WINDOWS = 50  #  LIMIT
+    # Create windows
+    def create_windows(self, frames, motion, signal, window_size=64):
+        appearance_windows = []
+        motion_windows = []
+        signal_windows = []
+
+        MAX_WINDOWS = 50
 
         for i in range(min(len(motion) - window_size, MAX_WINDOWS)):
+
+            a = frames[i:i+window_size]
             m = motion[i:i+window_size]
             s = signal[i:i+window_size]
 
-            motions.append(m)
-            signals.append(s)
+            appearance_windows.append(a)
+            motion_windows.append(m)
+            signal_windows.append(s)
 
-        return np.array(motions), np.array(signals)
+        return (
+            np.array(appearance_windows),
+            np.array(motion_windows),
+            np.array(signal_windows)
+        )
+
     def __len__(self):
         return len(self.samples)
 
@@ -106,10 +115,15 @@ class RPPGDataset:
 
         frames = self.extract_frames(video_path)
         motion = self.extract_motion(frames)
-        signal = self.extract_gt_signal(json_path, video_path)
 
-        # Align signal with motion
+        signal = self.extract_gt_signal(json_path)
+
+        if signal is None:
+            raise ValueError("Signal extraction failed")
+
+        # align with motion length
         signal = self.align_signal(signal, len(motion))
 
-        motion_windows, signal_windows = self.create_windows(motion, signal)
-        return motion_windows, signal_windows
+        appearance, motion, signal = self.create_windows(frames, motion, signal)
+
+        return appearance, motion, signal
