@@ -27,7 +27,7 @@ model.train()
 #LOWER LR(IMPORTANT)
 optimizer = torch.optim.Adam(model.parameters(), lr=1e-4, weight_decay=1e-5)
 criterion = nn.MSELoss()
-
+best_val_loss = float("inf")
 #  LOOP
 for epoch in range(10):
     print(f"\n===== Epoch {epoch} =====")
@@ -105,5 +105,8 @@ for epoch in range(10):
                 val_count += 1
 
     print(f"Validation Loss: {val_loss / val_count:.4f}")
-
+    if val_loss < best_val_loss:
+        best_val_loss = val_loss
+        torch.save(model.state_dict(), "best_model.pth")
+        print("Best model saved!")
     model.train()
