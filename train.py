@@ -28,13 +28,14 @@ criterion = nn.MSELoss()
 for epoch in range(2):
     print(f"\n===== Epoch {epoch} =====")
 
-    for batch_idx, (motion, signal) in enumerate(loader):
+    for batch_idx, (appearance, motion, signal) in enumerate(loader):
 
         print(f"\nProcessing video batch {batch_idx+1}")
 
         # remove batch dimension
         motion = motion.squeeze(0)   # (W, T, H, W, C)
         signal = signal.squeeze(0)   # (W, T)
+        appearance = appearance.squeeze(0) # (W, T, H, W, C)
 
         # 🔥 LIMIT WINDOWS (VERY IMPORTANT)
         max_windows = min(2, len(motion))
@@ -44,8 +45,10 @@ for epoch in range(2):
             print(f"  Window {i+1}/{max_windows}")
 
             # move small chunk to GPU
+            a = appearance[i].float().to(device)
             m = motion[i].float().to(device)
             s = signal[i].float().to(device)
+            output = model(a, m)
 
             try:
                 # TEMP: motion used as appearance too
