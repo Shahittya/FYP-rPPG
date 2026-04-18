@@ -25,7 +25,7 @@ model = DeepPhysModel().to(device)
 model.train()
 
 #LOWER LR(IMPORTANT)
-optimizer = torch.optim.Adam(model.parameters(), lr=1e-4)
+optimizer = torch.optim.Adam(model.parameters(), lr=1e-4, weight_decay=1e-5)
 criterion = nn.MSELoss()
 
 #  LOOP

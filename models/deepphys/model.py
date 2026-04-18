@@ -22,6 +22,7 @@ class DeepPhysModel(nn.Module):
         self.fc=nn.Sequential(
             nn.Linear(32*72*72,128),
             nn.ReLU(),
+            nn.Dropout(0.3),
             nn.Linear(128,1)
         )
     def forward(self,appearance,motion):
