@@ -23,7 +23,7 @@ optimizer = torch.optim.Adam(model.parameters(), lr=1e-4)
 criterion = nn.MSELoss()
 
 #  LOOP
-for epoch in range(3):
+for epoch in range(10):
     print(f"\n===== Epoch {epoch} =====")
 
     epoch_loss = 0
@@ -37,7 +37,7 @@ for epoch in range(3):
         motion = motion.squeeze(0)
         signal = signal.squeeze(0)
 
-        max_windows = min(3, len(motion))
+        max_windows = min(8, len(motion))
 
         for i in range(max_windows):
 
