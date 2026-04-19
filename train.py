@@ -8,7 +8,7 @@ from torch.utils.data import random_split
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 # DATA PATH
-DATA_PATH = "/content/drive/MyDrive/FYP/data/data/videos"
+DATA_PATH = "/content/drive/MyDrive/ML/FYP/data/data/videos"
 
 # Dataset
 dataset = RPPGDataset(DATA_PATH)
