@@ -28,13 +28,19 @@ model.train()
 optimizer = torch.optim.Adam(model.parameters(), lr=1e-4, weight_decay=1e-5)
 criterion = nn.MSELoss()
 best_val_loss = float("inf")
+
 #  LOOP
-for epoch in range(10):
+EPOCHS = 5
+
+for epoch in range(EPOCHS):
     print(f"\n===== Epoch {epoch} =====")
+
+    model.train()
 
     epoch_loss = 0
     count = 0
 
+    # TRAINING LOOP 
     for batch_idx, (appearance, motion, signal) in enumerate(train_loader):
 
         print(f"\nProcessing video batch {batch_idx+1}")
@@ -43,40 +49,41 @@ for epoch in range(10):
         motion = motion.squeeze(0)
         signal = signal.squeeze(0)
 
-        max_windows = min(8, len(motion))
+        max_windows = min(10, len(motion))
 
-        for i in range(max_windows):
+        a_batch = appearance[:max_windows].float().to(device)
+        m_batch = motion[:max_windows].float().to(device)
+        s_batch = signal[:max_windows].float().to(device)
 
-            print(f"  Window {i+1}/{max_windows}")
+        B, T, H, W, C = a_batch.shape
 
-            a = appearance[i].float().to(device)
-            m = motion[i].float().to(device)
-            s = signal[i].float().to(device)
+        a_batch = a_batch.view(B * T, H, W, C)
+        m_batch = m_batch.view(B * T, H, W, C)
+        s_batch = s_batch.view(B * T)
 
-            #NORMALIZE SIGNAL 
-            s = (s - s.mean()) / (s.std() + 1e-6)
+        s_batch = (s_batch - s_batch.mean()) / (s_batch.std() + 1e-6)
 
-            try:
-               
-                output = model(a, m)
+        try:
+            output = model(a_batch, m_batch)
 
-                loss = criterion(output, s)
+            loss = criterion(output, s_batch)
 
-                optimizer.zero_grad()
-                loss.backward()
+            optimizer.zero_grad()
+            loss.backward()
 
-                #GRADIENT CLIPPING
-                torch.nn.utils.clip_grad_norm_(model.parameters(), 1.0)
-                optimizer.step()
-                epoch_loss += loss.item()
-                count += 1
+            torch.nn.utils.clip_grad_norm_(model.parameters(), 1.0)
+            optimizer.step()
 
-            except Exception as e:
-                print("Error:", e)
-                continue
+            epoch_loss += loss.item()
+            count += 1
+
+        except Exception as e:
+            print("Error:", e)
+            continue
 
     print(f"\nEpoch {epoch} Avg Loss: {epoch_loss / count:.4f}")
-    #model evaluation
+
+    # VALIDATION
     model.eval()
     val_loss = 0
     val_count = 0
@@ -104,9 +111,13 @@ for epoch in range(10):
                 val_loss += loss.item()
                 val_count += 1
 
-    print(f"Validation Loss: {val_loss / val_count:.4f}")
+    val_loss = val_loss / val_count
+    print(f"Validation Loss: {val_loss:.4f}")
+
+    #  BEST MODEL
     if val_loss < best_val_loss:
         best_val_loss = val_loss
         torch.save(model.state_dict(), "best_model.pth")
         print("Best model saved!")
+
     model.train()
