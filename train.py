@@ -30,7 +30,7 @@ criterion = nn.MSELoss()
 best_val_loss = float("inf")
 
 #  LOOP
-EPOCHS = 5
+EPOCHS = 10
 
 for epoch in range(EPOCHS):
     print(f"\n===== Epoch {epoch} =====")
