@@ -4,14 +4,14 @@ from models.deepphys.dataset_loader import RPPGDataset
 from models.deepphys.model import DeepPhysModel
 import torch.nn as nn
 from torch.utils.data import random_split
-
+from dataset_fast import RPPGFastDataset
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 # DATA PATH
-DATA_PATH = "/content/drive/MyDrive/ML/FYP/data/data/videos"
+DATA_PATH = "/content/drive/MyDrive/FYP/processed"
 
 # Dataset
-dataset = RPPGDataset(DATA_PATH)
+dataset = RPPGFastDataset(DATA_PATH)
 loader = DataLoader(dataset, batch_size=1, shuffle=True)
 train_size = int(0.8 * len(dataset))
 val_size = len(dataset) - train_size
