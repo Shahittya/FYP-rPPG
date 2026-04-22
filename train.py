@@ -30,7 +30,7 @@ criterion = nn.MSELoss()
 best_val_loss = float("inf")
 
 #  LOOP
-EPOCHS = 5
+EPOCHS = 15
 
 for epoch in range(EPOCHS):
     print(f"\n===== Epoch {epoch} =====")
@@ -49,7 +49,7 @@ for epoch in range(EPOCHS):
         motion = motion.squeeze(0)
         signal = signal.squeeze(0)
 
-        max_windows = min(10, len(motion))
+        max_windows = min(15, len(motion))
 
         a_batch = appearance[:max_windows].float().to(device)
         m_batch = motion[:max_windows].float().to(device)
