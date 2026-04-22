@@ -20,9 +20,9 @@ class DeepPhysModel(nn.Module):
         )
         #Fully connected layers
         self.fc=nn.Sequential(
-            nn.Linear(32*72*72,128),
+            nn.Linear(32,128),
             nn.ReLU(),
-            nn.Dropout(0.3),
+            nn.Dropout(0.5),
             nn.Linear(128,1)
         )
     def forward(self,appearance,motion):
@@ -31,6 +31,7 @@ class DeepPhysModel(nn.Module):
             m=self.motion_stream(motion)
             a=self.appearance_stream(appearance)
             x=m*a
+            x = nn.functional.adaptive_avg_pool2d(x, (1, 1))
             x=x.reshape(x.size(0),-1)
             x=self.fc(x)
             return x.squeeze()
