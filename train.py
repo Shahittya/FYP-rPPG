@@ -61,7 +61,7 @@ for epoch in range(EPOCHS):
         m_batch = m_batch.view(B * T, H, W, C)
         s_batch = s_batch.view(B * T)
 
-        s_batch = (s_batch - s_batch.mean()) / (s_batch.std() + 1e-6)
+        
 
         try:
             output = model(a_batch, m_batch)
