@@ -12,10 +12,9 @@ class RPPGFastDataset(Dataset):
         return len(self.files)
 
     def __getitem__(self, idx):
-        data = np.load(self.files[idx])
-
-        appearance = data["appearance"]
-        motion = data["motion"]
-        signal = data["signal"]
-
+        with np.load(self.files[idx]) as data:
+            appearance = data["appearance"]
+            motion = data["motion"]
+            signal = data["signal"]
+        signal = (signal - signal.mean()) / (signal.std() + 1e-6)
         return appearance, motion, signal

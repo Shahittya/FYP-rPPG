@@ -102,9 +102,6 @@ for epoch in range(EPOCHS):
                 a = appearance[i].float().to(device)
                 m = motion[i].float().to(device)
                 s = signal[i].float().to(device)
-
-                s = (s - s.mean()) / (s.std() + 1e-6)
-
                 output = model(a, m)
                 loss = criterion(output, s)
 
