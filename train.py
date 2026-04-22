@@ -25,7 +25,7 @@ model = DeepPhysModel().to(device)
 model.train()
 
 #LOWER LR(IMPORTANT)
-optimizer = torch.optim.Adam(model.parameters(), lr=5e-5, weight_decay=1e-5)
+optimizer = torch.optim.Adam(model.parameters(), lr=1e-4, weight_decay=1e-5)
 criterion = nn.MSELoss()
 best_val_loss = float("inf")
 
@@ -49,7 +49,7 @@ for epoch in range(EPOCHS):
         motion = motion.squeeze(0)
         signal = signal.squeeze(0)
 
-        max_windows = min(5, len(motion))
+        max_windows = min(10, len(motion))
 
         a_batch = appearance[:max_windows].float().to(device)
         m_batch = motion[:max_windows].float().to(device)
