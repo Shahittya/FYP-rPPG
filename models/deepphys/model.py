@@ -2,9 +2,24 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
-class DeepPhysLSTM(nn.Module):
+
+# SIMPLE TEMPORAL ATTENTION
+class TemporalAttention(nn.Module):
+    def __init__(self, hidden_size):
+        super(TemporalAttention, self).__init__()
+        self.attn = nn.Linear(hidden_size, 1)
+
+    def forward(self, x):
+        # x: (T, H)
+        weights = torch.softmax(self.attn(x), dim=0)  # (T, 1)
+        x = x * weights                               # (T, H)
+        return x
+
+
+# MAIN MODEL
+class DeepPhysLSTMAttention(nn.Module):
     def __init__(self):
-        super(DeepPhysLSTM, self).__init__()
+        super(DeepPhysLSTMAttention, self).__init__()
 
         # Motion stream
         self.motion_stream = nn.Sequential(
@@ -24,13 +39,16 @@ class DeepPhysLSTM(nn.Module):
 
         # LSTM (temporal modeling)
         self.lstm = nn.LSTM(
-            input_size=64, 
-            hidden_size=128, 
+            input_size=64,
+            hidden_size=128,
             num_layers=1,
             batch_first=True
         )
 
-        # Final regression
+        # Attention layer
+        self.attention = TemporalAttention(128)
+
+        # Fully connected output
         self.fc = nn.Sequential(
             nn.Linear(128, 64),
             nn.ReLU(),
@@ -68,7 +86,10 @@ class DeepPhysLSTM(nn.Module):
         # Remove batch → (T, 128)
         lstm_out = lstm_out.squeeze(0)
 
+        # Attention
+        attn_out = self.attention(lstm_out)  # (T, 128)
+
         # Final prediction → (T,)
-        out = self.fc(lstm_out).squeeze(-1)
+        out = self.fc(attn_out).squeeze(-1)
 
         return out
