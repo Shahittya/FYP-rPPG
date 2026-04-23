@@ -3,7 +3,7 @@ from torch.utils.data import DataLoader, random_split
 #from models.deepphys.model import DeepPhysModel
 from dataset_fast import RPPGFastDataset
 import torch.nn as nn
-from models.deepphys.model import DeepPhysLSTMAttention
+from models.deepphys.model import DeepPhysLSTM
 
 # DEVICE
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -22,7 +22,7 @@ train_dataset, val_dataset = random_split(dataset, [train_size, val_size])
 train_loader = DataLoader(train_dataset, batch_size=1, shuffle=True, num_workers=0)
 val_loader = DataLoader(val_dataset, batch_size=1, shuffle=False, num_workers=0)
 #model = DeepPhysModel().to(device)
-model = DeepPhysLSTMAttention().to(device)
+model = DeepPhysLSTM().to(device)
 # OPTIMIZER + LOSS
 optimizer = torch.optim.Adam(model.parameters(), lr=1e-4, weight_decay=1e-5)
 criterion = nn.MSELoss()
