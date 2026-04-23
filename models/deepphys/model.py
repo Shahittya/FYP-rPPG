@@ -6,21 +6,21 @@ class DeepPhysModel(nn.Module):
         super(DeepPhysModel, self).__init__()
         #Motion
         self.motion_stream =nn.Sequential(
-            nn.Conv2d(3,16,kernel_size=3,padding=1),
+            nn.Conv2d(3,32,kernel_size=3,padding=1),
             nn.ReLU(),
-            nn.Conv2d(16,32,kernel_size=3,padding=1),
+            nn.Conv2d(32,64,kernel_size=3,padding=1),
             nn.ReLU()
         )
         #Appearance
         self.appearance_stream = nn.Sequential(
-            nn.Conv2d(3,16,kernel_size=3,padding=1),
+            nn.Conv2d(3,32,kernel_size=3,padding=1),
             nn.ReLU(),
-            nn.Conv2d(16,32,kernel_size=3,padding=1),
+            nn.Conv2d(32,64,kernel_size=3,padding=1),
             nn.ReLU()
         )
         #Fully connected layers
         self.fc=nn.Sequential(
-            nn.Linear(32,128),
+            nn.Linear(64,128),
             nn.ReLU(),
             nn.Dropout(0.3),
             nn.Linear(128,1)
