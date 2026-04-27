@@ -21,7 +21,7 @@ model.load_state_dict(torch.load("best_model.pth", map_location=device))
 model.eval()
 
 # ===== VIDEO =====
-video_path = "data/videos/subject3/03fdb810e50b4aa58edbccc6012c6710_1.mp4"  
+video_path = "/content/drive/MyDrive/FYP/data/data/videos/subject3/03fdb810e50b4aa58edbccc6012c6710_1.mp4"  
 cap = cv2.VideoCapture(video_path)
 
 fps = cap.get(cv2.CAP_PROP_FPS)
@@ -192,6 +192,10 @@ if len(frames) > 0:
         final_bpms.append(bpm)
 
         print(f"Final Window BPM: {bpm:.2f}")
+        bpm_chrom, _, _ = calculate_heart_rate(chrom_signal, fps)
+        bpm_deep, _, _ = calculate_heart_rate(deep_signal, fps)
+        print(f"CHROM BPM: {bpm_chrom:.2f}")
+        print(f"DEEP BPM: {bpm_deep:.2f}")
 
 # ===== CLEANUP =====
 cap.release()
